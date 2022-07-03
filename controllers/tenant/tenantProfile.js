@@ -1,11 +1,11 @@
-const handleTenantProfileGet = (req, res, db) => {
-  const { id } = req.params;
+const handleTenantProfileUpdate = (req, res, db) => {
+  const { tenantemail } = req.params;
   const { name, phone } = req.body;
   db.select("*")
     .from("tenant")
-    .where({ ownerid: id })
-    .then((owner) => {
-      if (owner.length) {
+    .where({ tenantemail })
+    .then((tenant) => {
+      if (tenant.length) {
         db.select("tenantname, tenantphone")
           .from("tenant")
           .update({
@@ -22,5 +22,5 @@ const handleTenantProfileGet = (req, res, db) => {
 };
 
 module.exports = {
-  handleTenantProfileGet,
+  handleTenantProfileUpdate,
 };

@@ -2,24 +2,28 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const knex = require("knex");
-
-const registerOwner = require("./controllers/registerOwner");
-const registerTenant = require("./controllers/registerTenant");
-const signinOwner = require("./controllers/signinOwner");
-const signinTenant = require("./controllers/signinTenant");
-const ownerProfileUpdate = require("./controllers/ownerProfileUpdate");
-const ownerProfileGet = require("./controllers/ownerProfileGet");
-const tenantProfile = require("./controllers/tenantProfile");
-const addApartments = require("./controllers/addApartment");
-const updateApartment = require("./controllers/updateApartment");
-const deleteApartment = require("./controllers/deleteApartment");
-const displayApartment = require("./controllers/displayApartmentsOwner");
-const filterByLocation = require("./controllers/filter/ApartmentByLocation");
+//Owner Routes
+const registerOwner = require("./controllers/owner/registerOwner");
+const signinOwner = require("./controllers/owner/signinOwner");
+const ownerProfileUpdate = require("./controllers/owner/ownerProfileUpdate");
+const ownerProfileGet = require("./controllers/owner/ownerProfileGet");
+//Tenant Routes
+const registerTenant = require("./controllers/tenant/registerTenant");
+const signinTenant = require("./controllers/tenant/signinTenant");
+const tenantProfileGet = require("./controllers/tenant/tenantProfileGet");
+const tenantProfile = require("./controllers/tenant/tenantProfile");
+//Apartment Routes
+const addApartments = require("./controllers/apartments/addApartment");
+const updateApartment = require("./controllers/apartments/updateApartment");
+const deleteApartment = require("./controllers/apartments/deleteApartment");
+const displayApartment = require("./controllers/apartments/displayApartmentsOwner");
+const displayApartmentsTenant = require("./controllers/apartments/displayApartmentsTenant");
+//Amenities Routes
+const addAmenities = require("./controllers/amenities/addAmenities");
+const getAmenities = require("./controllers/amenities/displayAmenities");
+//Filter Routes
 const filterByPrice = require("./controllers/filter/ApartmentByPrice");
-
-const addAmenities = require("./controllers/addAmenities");
-const getAmenities = require("./controllers/displayAmenities");
-const displayApartmentsTenant = require("./controllers/displayApartmentsTenant");
+const filterByLocation = require("./controllers/filter/ApartmentByLocation");
 
 const db = knex({
   // connect to database:
@@ -41,13 +45,11 @@ app.get("/", (req, res) => {
   res.send(db.owners);
   res.send(db.tenant);
 });
+
+//Owner
 app.post("/signinOwner", signinOwner.handleOwnerSignin(db, bcrypt));
-app.post("/signinTenant", signinTenant.handleTenantSignin(db, bcrypt));
 app.post("/registerOwner", (req, res) => {
   registerOwner.handleOwnerRegister(req, res, db, bcrypt);
-});
-app.post("/registerTenant", (req, res) => {
-  registerTenant.handleTenantRegister(req, res, db, bcrypt);
 });
 app.put("/ownerProfile/:owneremail", (req, res) => {
   ownerProfileUpdate.handleOwnerProfileUpdate(req, res, db);
@@ -55,18 +57,25 @@ app.put("/ownerProfile/:owneremail", (req, res) => {
 app.get("/ownerProfile/:owneremail", (req, res) => {
   ownerProfileGet.handleOwnerProfileGet(req, res, db);
 });
-app.put("/tenantProfile/:id", (req, res) => {
+
+//Tenant
+app.post("/signinTenant", signinTenant.handleTenantSignin(db, bcrypt));
+app.post("/registerTenant", (req, res) => {
+  registerTenant.handleTenantRegister(req, res, db, bcrypt);
+});
+app.get("/tenantProfile/:tenantemail", (req, res) => {
+  tenantProfileGet.handleTenantProfileGet(req, res, db);
+});
+app.put("/tenantProfile/:tenantemail", (req, res) => {
   tenantProfile.handleTenantProfileUpdate(req, res, db);
 });
-// Owners functionalities
+app.get("/tenantPanel", (req, res) => {
+  displayApartmentsTenant.handleApartmentDisplayTenant(req, res, db);
+});
+
+// Apartments
 app.post("/Apartments/:owneremail", (req, res) => {
   addApartments.handleApartmentInsertion(req, res, db);
-});
-app.post("/Amenities/:apid", (req, res) => {
-  addAmenities.handleAmenitiesInsertion(req, res, db);
-});
-app.get("/Amenities/:apid", (req, res) => {
-  getAmenities.handleAmenitiesGet(req, res, db);
 });
 app.put("/Apartments/:apid", (req, res) => {
   updateApartment.handleApartmentUpdate(req, res, db);
@@ -74,13 +83,8 @@ app.put("/Apartments/:apid", (req, res) => {
 app.delete("/Apartments/:apid", (req, res) => {
   deleteApartment.handleApartmentDelete(req, res, db);
 });
-app.get("/ownerPanel/:owneremail", (req, res) => {
-  displayApartment.handleApartmentDisplay(req, res, db);
-});
-// Tenant Functionalities
-app.get("/tenantPanel", (req, res) => {
-  displayApartmentsTenant.handleApartmentDisplayTenant(req, res, db);
-});
+
+//Filter
 app.post("/:id/Apartments", (req, res) => {
   filterByLocation.handleApartmentByLocation(req, res, db);
 });
@@ -88,6 +92,18 @@ app.post("/:id/Apartments", (req, res) => {
   filterByPrice.handleApartmentByPrice(req, res, db);
 });
 
+//Amenities
+app.post("/Amenities/:apid", (req, res) => {
+  addAmenities.handleAmenitiesInsertion(req, res, db);
+});
+app.get("/Amenities/:apid", (req, res) => {
+  getAmenities.handleAmenitiesGet(req, res, db);
+});
+app.get("/ownerPanel/:owneremail", (req, res) => {
+  displayApartment.handleApartmentDisplay(req, res, db);
+});
+
+//Port
 app.listen(3001, () => {
   console.log("app is running on port 3001");
 });
